@@ -117,6 +117,18 @@
     textarea:focus { border-color: var(--accent); }
     textarea::placeholder { color: var(--placeholder); font-style: italic; }
 
+    input[type="text"] {
+      width: 100%; background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; font-family: var(--font-body), sans-serif; font-size: 0.88rem;
+      font-weight: 400; color: var(--text); outline: none; transition: border-color 0.2s;
+    }
+    input[type="text"]:focus { border-color: var(--accent); }
+    input[type="text"]::placeholder { color: var(--placeholder); font-style: italic; }
+    .name-row { display: flex; gap: 12px; }
+    .name-row > div { flex: 1; }
+    .field-label { font-size:0.72rem; color:var(--text-muted); margin-bottom:5px; display:block; }
+    .field-label span { color:var(--accent); }
+
     .vibe-options { display: flex; flex-wrap: wrap; gap: 8px; }
     .vibe-opt input[type="radio"] { display: none; }
     .vibe-opt span {
@@ -162,6 +174,7 @@
 <body>
 
 <form name="tattoo-intake" netlify netlify-honeypot="bot-field" hidden>
+  <input name="first-name"/><input name="last-name"/><input name="business-name"/>
   <input name="q1"/><input name="q2"/><input name="q3"/>
   <input name="q4"/><input name="q5"/><input name="q6"/>
   <input name="q7"/><input name="q8"/><input name="q9"/><input name="q10"/>
@@ -179,6 +192,21 @@
       </div>
 
       <div class="page active" id="p1">
+        <div class="question" style="margin-bottom:28px">
+          <div class="q-num">Your Info</div>
+          <div class="name-row" style="margin-bottom:10px">
+            <div>
+              <label class="field-label">First name <span>*</span></label>
+              <input type="text" name="first-name" placeholder="First name" required autocomplete="given-name">
+            </div>
+            <div>
+              <label class="field-label">Last name <span>*</span></label>
+              <input type="text" name="last-name" placeholder="Last name" required autocomplete="family-name">
+            </div>
+          </div>
+          <label class="field-label">Business name <span>*</span></label>
+          <input type="text" name="business-name" placeholder="Business name" required autocomplete="organization">
+        </div>
         <div class="section-label">Let's start with the basics</div>
         <div class="question">
           <div class="q-num">Question 1</div>
@@ -289,6 +317,9 @@ function finish() {
 
   const fd = new FormData();
   fd.append('form-name', 'tattoo-intake');
+  fd.append('first-name', document.querySelector('input[type="text"][name="first-name"]')?.value || '');
+  fd.append('last-name', document.querySelector('input[type="text"][name="last-name"]')?.value || '');
+  fd.append('business-name', document.querySelector('input[type="text"][name="business-name"]')?.value || '');
   const names = ['q1','q2','q3','q5','q6','q7','q8','q9','q10'];
   textareas.forEach((el, i) => fd.append(names[i], el.value));
   fd.append('q4', vibe ? vibe.nextElementSibling.textContent : '');
@@ -298,10 +329,10 @@ function finish() {
   const btn = document.querySelector('.btn-finish');
   btn.textContent = 'Sending...'; btn.disabled = true; btn.style.opacity = '0.6';
 
-  fetch('/', { method: 'POST', body: fd })
+  fetch('/api/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(fd)) })
     .finally(() => {
       const card = document.querySelector('.card');
-      card.innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:2.4rem;font-weight:800;color:#fff;letter-spacing:-0.02em;margin-bottom:16px">You're all set.</div><p style="color:var(--text-muted);font-size:0.95rem;line-height:1.7">I'll review everything before our call.<br>Talk soon.</p></div>';
+      card.innerHTML = `<div style="text-align:center;padding:60px 20px"><div style="font-size:2.4rem;font-weight:800;color:var(--text);letter-spacing:-0.02em;margin-bottom:16px">You're all set.</div><p style="color:var(--text-muted);font-size:0.95rem;line-height:1.7">I'll review everything before our call.<br>Talk soon.</p></div>`;
     });
 }
 window.addEventListener('load', () => {
