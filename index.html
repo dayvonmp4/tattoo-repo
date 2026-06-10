@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quick Questions — Tattoo Shop</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Karla:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    @property --a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+    :root {
+      --font-display: 'Anton';
+      --font-body: 'Karla';
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --text: #e0e0e0;
+      --text-muted: #767676;
+      --border: #222222;
+      --input-bg: #181818;
+      --placeholder: #767676;
+      --accent: #be2525;
+      --accent-bg: rgba(190,37,37,0.1);
+      --accent-glow: rgba(190,37,37,0.4);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body), sans-serif;
+      font-weight: 400;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      background-size: 200px 200px; opacity: 0.04;
+    }
+
+    @keyframes beam-spin { to { --a: 360deg; } }
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 8px 1px var(--accent-glow); }
+      50% { box-shadow: 0 0 16px 4px var(--accent-glow); }
+    }
+
+    .wrap { max-width: 688px; margin: 0 auto; padding: 60px 24px 100px; position: relative; z-index: 1; }
+
+    body::before {
+      content: '';
+      position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
+      width: 600px; height: 400px; pointer-events: none; z-index: 0;
+      background: radial-gradient(ellipse at center, rgba(190,37,37,0.05) 0%, transparent 70%);
+    }
+
+    .form-brand {
+      font-size: 0.68rem; font-weight: 500; color: var(--text-muted);
+      letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 28px;
+      font-family: var(--font-body), sans-serif;
+    }
+
+    .beam-wrap {
+      width: 100%; padding: 1.5px; border-radius: 24px;
+      background: conic-gradient(from var(--a), var(--border) 0deg, var(--border) 348deg, var(--accent) 356deg, var(--border) 364deg);
+      animation: beam-spin 4s linear infinite;
+      box-shadow: 0 0 50px rgba(190,37,37,0.06), 0 20px 60px rgba(0,0,0,0.6);
+    }
+
+    .card {
+      background: var(--surface); border-radius: 22.5px; padding: 44px 40px 52px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 40px 100px rgba(0,0,0,0.7);
+    }
+
+    .form-title {
+      font-family: var(--font-display), sans-serif;
+      font-size: clamp(2rem, 6.5vw, 3.6rem); font-weight: 400; color: var(--text);
+      line-height: 1.03; letter-spacing: 0.02em; margin-bottom: 10px;
+      text-shadow: 0 0 60px rgba(190,37,37,0.08);
+      text-wrap: balance;
+    }
+
+    .form-sub { font-size: 0.88rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 36px; }
+
+    .progress-wrap { display: flex; align-items: center; gap: 14px; margin-bottom: 44px; }
+    .progress-track { flex: 1; height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .progress-fill {
+      height: 100%; background: var(--accent); border-radius: 2px; width: 0%;
+      box-shadow: 0 0 8px 1px var(--accent-glow);
+      transition: width 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+    .progress-count { font-size: 0.7rem; font-weight: 500; color: var(--text-muted); white-space: nowrap; min-width: 40px; text-align: right; }
+    .progress-count b { color: var(--accent); font-weight: 600; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .section-label {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 32px; opacity: 0.75;
+    }
+
+    .question { margin-bottom: 36px; }
+    .q-num { font-size: 0.62rem; font-weight: 600; color: var(--accent); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+    .q-text { font-size: 0.95rem; font-weight: 500; color: var(--text); line-height: 1.5; margin-bottom: 12px; }
+    .q-hint { font-size: 0.78rem; color: var(--text-muted); margin-top: -6px; margin-bottom: 10px; line-height: 1.55; }
+
+    textarea {
+      width: 100%; min-height: 76px; resize: vertical;
+      background: var(--input-bg); border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 12px 14px; font-family: var(--font-body), sans-serif; font-size: 0.88rem;
+      font-weight: 400; color: var(--text); outline: none;
+      transition: border-color 0.2s; line-height: 1.6;
+    }
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--placeholder); font-style: italic; }
+
+    .vibe-options { display: flex; flex-wrap: wrap; gap: 8px; }
+    .vibe-opt input[type="radio"] { display: none; }
+    .vibe-opt span {
+      display: block; padding: 7px 16px; border: 1.5px solid var(--border);
+      border-radius: 50px; font-family: var(--font-body), sans-serif;
+      font-size: 0.82rem; font-weight: 400; color: var(--text-muted);
+      cursor: pointer; transition: all 0.15s; user-select: none;
+    }
+    .vibe-opt input[type="radio"]:checked + span {
+      border-color: var(--accent); background: var(--accent-bg); color: var(--accent); font-weight: 500;
+    }
+
+    .nav { display: flex; justify-content: flex-end; padding-top: 8px; }
+
+    .btn-next, .btn-finish {
+      position: relative; overflow: hidden;
+      padding: 11px 28px; border: none; border-radius: 50px;
+      font-family: var(--font-body), sans-serif; font-size: 0.88rem;
+      font-weight: 500; cursor: pointer; transition: all 0.18s;
+    }
+    .btn-next { background: var(--text); color: var(--bg); }
+    .btn-next:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-next:active { transform: scale(0.98); }
+    .btn-finish { background: var(--accent); color: #ffffff; }
+    .btn-finish:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-finish:active { transform: scale(0.98); }
+
+    .btn-next::before, .btn-finish::before {
+      content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+      background: linear-gradient(105deg, transparent, rgba(255,255,255,0.16), transparent);
+      transition: left 0.5s ease; pointer-events: none;
+    }
+    .btn-next:hover::before, .btn-finish:hover::before { left: 160%; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      .beam-wrap { animation: none; background: var(--border); }
+      .progress-fill { box-shadow: none; }
+    }
+    @media (max-width: 520px) { .card { padding: 32px 24px 40px; } .form-title { font-size: 2.2rem; } }
+  </style>
+</head>
+<body>
+
+<form name="tattoo-intake" netlify netlify-honeypot="bot-field" hidden>
+  <input name="q1"/><input name="q2"/><input name="q3"/>
+  <input name="q4"/><input name="q5"/><input name="q6"/>
+  <input name="q7"/><input name="q8"/><input name="q9"/><input name="q10"/>
+</form>
+<div class="wrap">
+  <div class="form-brand">Devon Reyes · Web Design</div>
+  <div class="beam-wrap">
+    <div class="card">
+      <h1 class="form-title">Just some quick questions before our Zoom consultation.</h1>
+      <p class="form-sub">No pressure. Answer what you want, leave the rest, and we'll talk through everything on the call.</p>
+
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="pFill"></div></div>
+        <div class="progress-count"><b id="pNum">0</b>/10</div>
+      </div>
+
+      <div class="page active" id="p1">
+        <div class="section-label">Let's start with the basics</div>
+        <div class="question">
+          <div class="q-num">Question 1</div>
+          <div class="q-text">What styles do you (or your artists) specialize in?</div>
+          <textarea name="q1" placeholder="e.g. traditional, blackwork, fine line, realism, neo-trad — or a mix..."></textarea>
+        </div>
+        <div class="question">
+          <div class="q-num">Question 2</div>
+          <div class="q-text">Is this a solo artist setup, or a full shop with multiple artists?</div>
+          <textarea name="q2" placeholder="e.g. just me, or I have two other artists, or it's a full walk-in shop..."></textarea>
+        </div>
+        <div class="question">
+          <div class="q-num">Question 3</div>
+          <div class="q-text">How do people typically book with you — DMs, a form, walk-ins, or consultations first?</div>
+          <textarea name="q3" placeholder="e.g. DMs on Instagram, or people walk in, or consultation then booking..."></textarea>
+        </div>
+        <div class="nav"><button class="btn-next" onclick="goTo(2)">Continue</button></div>
+      </div>
+
+      <div class="page" id="p2">
+        <div class="section-label">Now the look and feel</div>
+        <div class="question">
+          <div class="q-num">Question 4</div>
+          <div class="q-text">How would you describe the vibe of your shop?</div>
+          <div class="vibe-options">
+            <label class="vibe-opt"><input type="radio" name="q4"><span>Dark &amp; Bold</span></label>
+            <label class="vibe-opt"><input type="radio" name="q4"><span>Clean &amp; Minimal</span></label>
+            <label class="vibe-opt"><input type="radio" name="q4"><span>Artsy &amp; Eclectic</span></label>
+            <label class="vibe-opt"><input type="radio" name="q4"><span>Gritty &amp; Real</span></label>
+          </div>
+        </div>
+        <div class="question">
+          <div class="q-num">Question 5</div>
+          <div class="q-text">Do you have a logo and brand direction, or should I build the look from scratch?</div>
+          <textarea name="q5" placeholder="e.g. I've got a logo I use, here it is / open to you designing something fresh..."></textarea>
+        </div>
+        <div class="question">
+          <div class="q-num">Question 6</div>
+          <div class="q-text">Do you have photos available for me to use for your site?</div>
+          <div class="q-hint">Portfolio shots are everything for a tattoo site. Even just a handful of your best work makes a massive difference.</div>
+          <textarea name="q6" placeholder="e.g. yes, I'll send portfolio shots / I'll pull from my Instagram / I don't have many organized..."></textarea>
+        </div>
+        <div class="question">
+          <div class="q-num">Question 7</div>
+          <div class="q-text">Any tattoo artist or shop whose site or brand aesthetic you respect?</div>
+          <textarea name="q7" placeholder="e.g. I like how [artist] presents their work, or there's a shop in Japan with a clean site..."></textarea>
+        </div>
+        <div class="nav"><button class="btn-next" onclick="goTo(3)">Continue</button></div>
+      </div>
+
+      <div class="page" id="p3">
+        <div class="section-label">Last few, the important ones</div>
+        <div class="question">
+          <div class="q-num">Question 8</div>
+          <div class="q-text">What's the main goal for the site — show portfolio, get consultation requests, or both?</div>
+          <textarea name="q8" placeholder="e.g. I want the portfolio front and center, bookings are secondary / I want to generate inquiries..."></textarea>
+        </div>
+        <div class="question">
+          <div class="q-num">Question 9</div>
+          <div class="q-text">What makes your work or your shop different from others?</div>
+          <textarea name="q9" placeholder="e.g. the style, the precision, the experience for the client, the culture in the shop..."></textarea>
+        </div>
+        <div class="question">
+          <div class="q-num">Question 10</div>
+          <div class="q-text">Is there anything about your craft that you feel like no website has ever shown the right way?</div>
+          <textarea name="q10" placeholder="e.g. the process, the intention behind the work, what a session actually feels like..."></textarea>
+        </div>
+        <div class="nav"><button class="btn-finish" onclick="finish()">All finished?</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let busy = false;
+function goTo(n) {
+  if (busy) return; busy = true;
+  const cur = document.querySelector('.page.active');
+  const nxt = document.getElementById('p' + n);
+  cur.style.transition = 'opacity 0.18s ease, filter 0.18s ease, transform 0.18s ease';
+  cur.style.opacity = '0'; cur.style.filter = 'blur(6px)'; cur.style.transform = 'translateY(-10px)';
+  setTimeout(() => {
+    cur.classList.remove('active'); cur.style.cssText = '';
+    nxt.style.opacity = '0'; nxt.style.filter = 'blur(8px)'; nxt.style.transform = 'translateY(16px)';
+    nxt.classList.add('active'); nxt.offsetHeight;
+    nxt.style.transition = 'opacity 0.4s cubic-bezier(0.16,1,0.3,1), filter 0.4s cubic-bezier(0.16,1,0.3,1), transform 0.4s cubic-bezier(0.16,1,0.3,1)';
+    nxt.style.opacity = '1'; nxt.style.filter = 'blur(0)'; nxt.style.transform = 'translateY(0)';
+    nxt.querySelectorAll('.question').forEach((q, i) => {
+      q.style.opacity = '0'; q.style.filter = 'blur(5px)'; q.style.transform = 'translateY(14px)';
+      setTimeout(() => {
+        q.style.transition = 'opacity 0.42s cubic-bezier(0.16,1,0.3,1), filter 0.42s cubic-bezier(0.16,1,0.3,1), transform 0.42s cubic-bezier(0.16,1,0.3,1)';
+        q.style.opacity = '1'; q.style.filter = 'blur(0)'; q.style.transform = 'translateY(0)';
+      }, 60 + i * 90);
+    });
+    const counts = { 2: 3, 3: 7 };
+    document.getElementById('pFill').style.width = (counts[n] / 10 * 100) + '%';
+    document.getElementById('pNum').textContent = counts[n];
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => { busy = false; }, 500);
+  }, 200);
+}
+function finish() {
+  if (busy) return;
+  busy = true;
+
+  const textareas = document.querySelectorAll('textarea');
+  const vibe = document.querySelector('input[name="q4"]:checked');
+
+  const fd = new FormData();
+  fd.append('form-name', 'tattoo-intake');
+  const names = ['q1','q2','q3','q5','q6','q7','q8','q9','q10'];
+  textareas.forEach((el, i) => fd.append(names[i], el.value));
+  fd.append('q4', vibe ? vibe.nextElementSibling.textContent : '');
+
+  document.getElementById('pFill').style.width = '100%';
+  document.getElementById('pNum').textContent = '10';
+  const btn = document.querySelector('.btn-finish');
+  btn.textContent = 'Sending...'; btn.disabled = true; btn.style.opacity = '0.6';
+
+  fetch('/', { method: 'POST', body: fd })
+    .finally(() => {
+      const card = document.querySelector('.card');
+      card.innerHTML = '<div style="text-align:center;padding:60px 20px"><div style="font-size:2.4rem;font-weight:800;color:#fff;letter-spacing:-0.02em;margin-bottom:16px">You're all set.</div><p style="color:var(--text-muted);font-size:0.95rem;line-height:1.7">I'll review everything before our call.<br>Talk soon.</p></div>';
+    });
+}
+window.addEventListener('load', () => {
+  document.querySelectorAll('#p1 .question').forEach((q, i) => {
+    q.style.opacity = '0'; q.style.filter = 'blur(5px)'; q.style.transform = 'translateY(14px)';
+    setTimeout(() => {
+      q.style.transition = 'opacity 0.42s cubic-bezier(0.16,1,0.3,1), filter 0.42s cubic-bezier(0.16,1,0.3,1), transform 0.42s cubic-bezier(0.16,1,0.3,1)';
+      q.style.opacity = '1'; q.style.filter = 'blur(0)'; q.style.transform = 'translateY(0)';
+    }, 350 + i * 90);
+  });
+});
+</script>
+</body>
+</html>
